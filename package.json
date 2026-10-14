@@ -1,13 +1,14 @@
 {
   "name": "colonel-bot",
   "version": "1.0.0",
-  "description": "WhatsApp Bot for Group",
+  "description": "WhatsApp Bot with AI Moderation & Mod Search",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
     "whatsapp-web.js": "^1.23.0",
-    "qrcode-terminal": "^0.12.0"
+    "qrcode-terminal": "^0.12.0",
+    "@google/generative-ai": "^0.21.0"
   }
 }
