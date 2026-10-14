@@ -2,7 +2,7 @@ const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const { GoogleGenerativeAI } = { GoogleGenerativeAI: require('@google/generative-ai').GoogleGenerativeAI };
 
-const OWNER_JID = '201066396249@c.us'; // ضع رقمك هنا بصيغة دولية
+const OWNER_JID = '201xxxxxxxxxx@c.us'; // ضع رقمك هنا بصيغة دولية
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 
 const genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
@@ -10,6 +10,7 @@ const genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable',
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
@@ -31,7 +32,6 @@ client.on('ready', () => {
     console.log('تم الاتصال بنجاح! البوت جاهز ومحمي.');
 });
 
-// فحص الألفاظ السيئة عبر الذكاء الاصطناعي
 async function checkProfanityWithAI(text) {
     if (!genAI || !text) return false;
     try {
@@ -45,7 +45,6 @@ async function checkProfanityWithAI(text) {
     }
 }
 
-// جلب تفاصيل المود من Modrinth
 async function fetchModrinthMod(query) {
     try {
         const searchRes = await fetch(`https://api.modrinth.com/v2/search?query=${encodeURIComponent(query)}&limit=1`);
@@ -86,30 +85,23 @@ client.on('message', async (msg) => {
         const senderContact = await client.getContactById(senderId);
         const senderName = senderContact.pushname || senderContact.number;
 
-        // 1. التعامل مع روابط الواتساب (حذف وإرسال تقرير خاص)
         const waLinkRegex = /(chat\.whatsapp\.com\/|wa\.me\/)/i;
         if (waLinkRegex.test(body)) {
             await msg.delete(true);
             await chat.sendMessage('تم حذف رابط واتساب من الرسالة.');
-            
-            // إرسال تقرير للمالك على الخاص
-            await client.sendMessage(OWNER_JID, `🚨 *تقرير حذف رابط*\n- *المجموعة:* ${chat.name}\n- *المستخدم:* ${senderName} (${senderId})\n- *الرسالة المحذوفة:* ${body}`);
+            await client.sendMessage(OWNER_JID, `🚨 *تقرير حذف رابط*\n- *المجموعة:* ${chat.name}\n- *المستخدم:* ${senderName}\n- *الرسالة:* ${body}`);
             return;
         }
 
-        // 2. كشف الشتايم وطرد العضو وإرسال تقرير
         const isBad = await checkProfanityWithAI(body);
         if (isBad) {
             await msg.delete(true);
             await chat.removeParticipants([senderId]);
             await chat.sendMessage(`تم طرد العضو ${senderName} بسبب إرسال ألفاظ غير لائقة.`);
-            
-            // إرسال تقرير للمالك على الخاص
-            await client.sendMessage(OWNER_JID, `🚫 *تقرير طرد عضو*\n- *المجموعة:* ${chat.name}\n- *المستخدم المطرود:* ${senderName} (${senderId})\n- *السبب:* إرسال ألفاظ سيئة\n- *الرسالة:* ${body}`);
+            await client.sendMessage(OWNER_JID, `🚫 *تقرير طرد عضو*\n- *المجموعة:* ${chat.name}\n- *المستخدم المطرود:* ${senderName}\n- *السبب:* شتائم\n- *الرسالة:* ${body}`);
             return;
         }
 
-        // 3. نظام الأوامر (مقتصر على المالك فقط)
         if (body.startsWith('!')) {
             if (senderId !== OWNER_JID) {
                 await msg.reply('عذراً، الأوامر مقتصرة على المالك فقط.');
