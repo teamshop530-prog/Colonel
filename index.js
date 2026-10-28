@@ -2,7 +2,7 @@ const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const { GoogleGenerativeAI } = { GoogleGenerativeAI: require('@google/generative-ai').GoogleGenerativeAI };
 
-const OWNER_JID = '201066396249@c.us'; // ضع رقمك هنا بصيغة دولية
+const OWNER_JID = 'حط الرقم بتاعك هنا@c.us'; // ضع رقمك هنا بصيغة دولية
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 
 const genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
